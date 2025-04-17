@@ -3208,11 +3208,7 @@ impl Room {
         self.send_call_notification(
             self.room_id().to_string().to_owned(),
             ApplicationType::Call,
-            if self.is_direct().await.unwrap_or(false) {
-                NotifyType::Ring
-            } else {
-                NotifyType::Notify
-            },
+            NotifyType::Ring,
             Mentions::with_room_mention(),
         )
         .await?;
