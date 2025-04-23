@@ -1,20 +1,30 @@
 name: Sync Upstream
 on:
-  schedule:
-    - cron: '0 0 * * *'  # Ежедневно в 00:00
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+    workflow_dispatch:
+
 jobs:
-  sync:
+  merge:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Sync Fork
-        uses: actions/github-script@v6
+      - uses: actions/checkout@v4
         with:
-          script: |
-            await github.rest.repos.mergeUpstream({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              branch: 'main'
-            })
+          fetch-depth: 0
+
+      - name: Merge changes from upstream
+        run: |
+          git remote add upstream https://github.com/matrix-org/matrix-rust-sdk.git
+          git fetch upstream
+          git merge upstream/main
+          git push origin main
+
+  notify:
+    needs: merge
+    runs-on: ubuntu-latest
+    steps:
+      - uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT }}
+          repository: hek4ek/matrix-rust-components-swift
+          event-type: rust-sdk-updated
