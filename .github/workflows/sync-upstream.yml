@@ -13,6 +13,11 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
 
+      - name: Verify PAT
+        run: |
+          echo "Token first chars: ${PAT:0:4}"
+          git remote -v
+    
       - name: Configure Git
         run: |
           git config --global user.name "GitHub Actions"
@@ -20,11 +25,14 @@ jobs:
 
       - name: Merge changes from upstream
         run: |
-          git remote add upstream https://github.com/matrix-org/matrix-rust-sdk.git
-          git fetch upstream
-          git merge upstream/main
-          git remote set-url origin https://${{ secrets.PAT }}@github.com/hek4ek/matrix-rust-sdk.git
-          git push origin main
+
+          git remote add upstream https://github.com/matrix-org/matrix-rust-sdk.git || true
+          
+          git fetch upstream main
+          
+          git merge --no-ff upstream/main
+          
+          git push https://${{ secrets.PAT }}@github.com/hek4ek/matrix-rust-sdk.git main
 
   notify:
     needs: merge
